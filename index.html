@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koperasi Pariwisata Indonesia</title>
+    
+    <!-- 1. Load React & ReactDOM (Versi Produksi yang Stabil) -->
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 2. Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- 3. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // --- DEFINISI IKON SVG (ZERO DEPENDENCY) ---
+        const Icons = {
+            Users: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+            Package: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-10"/></svg>,
+            ShoppingBag: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>,
+            MessageSquare: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+            CheckCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+            Plus: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            LogOut: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>,
+            Briefcase: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
+            MapPin: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
+            X: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            User: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            ShoppingCart: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>,
+            Trash2: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
+            CreditCard: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>,
+            ImageIcon: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
+            FileText: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>,
+            Eye: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
+            PlayCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>,
+            CheckSquare: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
+            Phone: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
+            UserCog: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><circle cx="19" cy="11" r="2"/><path d="M19 8v1"/><path d="M19 13v1"/><path d="M21.6 9.5a2.8 2.8 0 0 0-1.8 0"/><path d="M16.4 9.5a2.8 2.8 0 0 0 1.8 0"/><path d="M21.6 12.5a2.8 2.8 0 0 0-1.8 0"/><path d="M16.4 12.5a2.8 2.8 0 0 0 1.8 0"/></svg>
+        };
+
+        // --- DATA AWAL (DITAMBAHKAN PHONE & ADDRESS) ---
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        const formatRupiah = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n);
+
+        const INITIAL_USERS = [
+            { id: 'admin1', name: 'Admin Koperasi', email: 'admin@koperasi.id', role: 'admin', password: '123', phone: '081234567890', address: 'Kantor Pusat Koperasi, Jakarta' },
+            { id: 'vendor1', name: 'Bali Tour Travel', email: 'vendor@bali.id', role: 'vendor', password: '123', phone: '081298765432', address: 'Jl. Raya Kuta No. 88, Bali' },
+            { id: 'user1', name: 'Budi Wisatawan', email: 'budi@gmail.com', role: 'user', password: '123', phone: '085712345678', address: 'Jl. Sudirman No. 10, Jakarta Pusat' },
+        ];
+
+        const INITIAL_PRODUCTS = [
+            { id: 'p1', vendorId: 'vendor1', vendorName: 'Bali Tour Travel', name: 'Paket Tour Nusa Penida', price: 750000, category: 'Tour', image: 'https://images.unsplash.com/photo-1596395818837-29e71072930e?w=400', desc: 'Termasuk speed boat.', stock: 20, variants: ['Pagi', 'Siang'] },
+        ];
+
+        const INITIAL_REQUESTS = [
+            { id: 'r1', userId: 'user1', userName: 'Budi Wisatawan', title: 'Tiket Pesawat Grup ke Bali', desc: 'Butuh 10 tiket tanggal 20 Des.', budget: 15000000, status: 'open', date: '2024-10-25' }
+        ];
+
+        // --- COMPONENTS ---
+
+        function App() {
+            const [activeUser, setActiveUser] = useState(null);
+            const [users, setUsers] = useState(INITIAL_USERS);
+            const [products, setProducts] = useState(INITIAL_PRODUCTS);
+            const [requests, setRequests] = useState(INITIAL_REQUESTS);
+            const [offers, setOffers] = useState([]);
+            const [orders, setOrders] = useState([]);
+            const [cart, setCart] = useState([]);
+            const [view, setView] = useState('login');
+            
+            const [email, setEmail] = useState('');
+            const [pass, setPass] = useState('');
+            const [modalContent, setModalContent] = useState(null);
+
+            // Reg State
+            const [regName, setRegName] = useState('');
+            const [regEmail, setRegEmail] = useState('');
+            const [regPass, setRegPass] = useState('');
+            const [isRegistering, setIsRegistering] = useState(false);
+
+            const closeModal = () => setModalContent(null);
+
+            // --- HELPER: CART ---
+            const addToCart = (prod, qty, variant, note) => {
+                setCart([...cart, { ...prod, qty, variant, note, cartId: generateId() }]);
+                alert('Masuk keranjang!');
+            };
+            const getCartTotal = () => cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+            // --- MODALS ---
+
+            // NEW: MODAL KONFIRMASI
+            const ConfirmModal = ({ title, message, onConfirm, onCancel }) => (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white p-6 rounded-xl max-w-sm w-full shadow-2xl">
+                        <h3 className="font-bold text-xl mb-2">{title}</h3>
+                        <p className="text-gray-600 mb-6">{message}</p>
+                        <div className="flex justify-end gap-2">
+                            <button onClick={onCancel} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
+                            <button onClick={onConfirm} className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">Ya, Proses</button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // NEW: MODAL DETAIL USER UNTUK ADMIN
+            const UserDetailModal = ({ user }) => (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white p-6 rounded-xl max-w-md w-full shadow-2xl relative">
+                        <button onClick={closeModal} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><Icons.X/></button>
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-3 text-teal-700"><Icons.User size={32}/></div>
+                            <h3 className="font-bold text-xl">{user.name}</h3>
+                            <span className="uppercase text-xs font-bold bg-teal-600 text-white px-2 py-1 rounded">{user.role}</span>
+                        </div>
+                        <div className="space-y-4 text-sm text-gray-700">
+                            <div className="flex items-center gap-3 border-b pb-2">
+                                <Icons.Briefcase size={18} className="text-gray-400"/>
+                                <div><div className="font-bold text-xs text-gray-500">EMAIL</div>{user.email}</div>
+                            </div>
+                            <div className="flex items-center gap-3 border-b pb-2">
+                                <Icons.Phone size={18} className="text-gray-400"/>
+                                <div><div className="font-bold text-xs text-gray-500">WHATSAPP</div>{user.phone || '-'}</div>
+                            </div>
+                            <div className="flex items-start gap-3 border-b pb-2">
+                                <Icons.MapPin size={18} className="text-gray-400 mt-1"/>
+                                <div><div className="font-bold text-xs text-gray-500">ALAMAT</div>{user.address || '-'}</div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="text-gray-400 font-mono text-lg">***</div>
+                                <div><div className="font-bold text-xs text-gray-500">PASSWORD</div>{user.password}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // NEW: MODAL EDIT PROFILE (POP-UP)
+            const EditProfileModal = () => {
+                const [formData, setFormData] = useState({
+                    name: activeUser.name,
+                    email: activeUser.email,
+                    password: activeUser.password,
+                    phone: activeUser.phone || '',
+                    address: activeUser.address || ''
+                });
+
+                const handleSave = (e) => {
+                    e.preventDefault();
+                    const updatedUser = { ...activeUser, ...formData };
+                    setUsers(users.map(u => u.id === activeUser.id ? updatedUser : u));
+                    setActiveUser(updatedUser);
+                    closeModal();
+                    alert('Profil berhasil diperbarui!');
+                };
+
+                return (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white p-6 rounded-xl max-w-md w-full shadow-2xl relative h-[85vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="font-bold text-xl flex items-center gap-2 text-teal-800"><Icons.UserCog/> Edit Profil</h3>
+                                <button onClick={closeModal}><Icons.X size={20}/></button>
+                            </div>
+                            <form onSubmit={handleSave} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold mb-1 text-gray-700">Nama Lengkap</label>
+                                    <input className="w-full border p-2 rounded focus:ring-2 focus:ring-teal-500 outline-none" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} required/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-1 text-gray-700">Email</label>
+                                    <input className="w-full border p-2 rounded bg-gray-100" type="email" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} required/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-1 text-gray-700">Password</label>
+                                    <input className="w-full border p-2 rounded focus:ring-2 focus:ring-teal-500 outline-none" type="password" value={formData.password} onChange={e=>setFormData({...formData, password: e.target.value})} required/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-1 text-gray-700">Nomor WhatsApp</label>
+                                    <div className="flex">
+                                        <span className="bg-gray-100 border border-r-0 rounded-l p-2 text-gray-500 text-sm flex items-center">+62</span>
+                                        <input className="w-full border p-2 rounded-r focus:ring-2 focus:ring-teal-500 outline-none" type="tel" value={formData.phone} onChange={e=>setFormData({...formData, phone: e.target.value})} placeholder="81234567890" required/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-1 text-gray-700">Alamat Lengkap</label>
+                                    <textarea className="w-full border p-2 rounded focus:ring-2 focus:ring-teal-500 outline-none" rows="3" value={formData.address} onChange={e=>setFormData({...formData, address: e.target.value})} required placeholder="Masukkan alamat lengkap..."></textarea>
+                                </div>
+                                <div className="pt-4">
+                                    <button className="bg-teal-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-teal-700 shadow-lg w-full">Simpan Perubahan</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                );
+            };
+
+            const AddProductModal = () => {
+                const [form, setForm] = useState({ name: '', price: '', category: 'Tour', stock: 10, variants: '', desc: '' });
+                const [imgPreview, setImgPreview] = useState(null);
+
+                const handleSave = () => {
+                    const newProd = {
+                        id: generateId(),
+                        vendorId: activeUser.id, vendorName: activeUser.name,
+                        ...form, price: parseInt(form.price),
+                        variants: form.variants.split(',').map(v=>v.trim()).filter(v=>v),
+                        image: imgPreview || 'https://via.placeholder.com/400'
+                    };
+                    setProducts([...products, newProd]);
+                    closeModal();
+                    alert('Produk ditambahkan!');
+                };
+
+                return (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white p-6 rounded-xl max-w-md w-full h-[80vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-bold text-xl">Tambah Produk</h3>
+                                <button onClick={closeModal}><Icons.X size={20}/></button>
+                            </div>
+                            <div className="space-y-3">
+                                <input className="border p-2 w-full rounded" placeholder="Nama Produk" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
+                                <div className="flex gap-2">
+                                    <select className="border p-2 rounded w-1/2" value={form.category} onChange={e=>setForm({...form, category: e.target.value})}>
+                                        <option>Tour</option><option>Transport</option><option>Hotel</option>
+                                    </select>
+                                    <input type="number" className="border p-2 w-1/2 rounded" placeholder="Stok" value={form.stock} onChange={e=>setForm({...form, stock: e.target.value})} />
+                                </div>
+                                <input type="number" className="border p-2 w-full rounded" placeholder="Harga (IDR)" value={form.price} onChange={e=>setForm({...form, price: e.target.value})} />
+                                <input className="border p-2 w-full rounded" placeholder="Varian (pisahkan koma)" value={form.variants} onChange={e=>setForm({...form, variants: e.target.value})} />
+                                <textarea className="border p-2 w-full rounded" placeholder="Deskripsi" value={form.desc} onChange={e=>setForm({...form, desc: e.target.value})}></textarea>
+                                
+                                <div className="border-2 border-dashed p-4 text-center rounded relative hover:bg-gray-50 transition">
+                                    <input type="file" accept="image/*" className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" onChange={e => e.target.files[0] && setImgPreview(URL.createObjectURL(e.target.files[0]))} />
+                                    {imgPreview ? (
+                                        <img src={imgPreview} className="h-32 mx-auto object-cover rounded"/> 
+                                    ) : (
+                                        <div className="text-gray-400 text-sm flex flex-col items-center">
+                                            <Icons.ImageIcon size={24} className="mb-2"/>
+                                            <span>Klik Upload Foto</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <button onClick={handleSave} className="w-full bg-teal-600 text-white p-2 rounded font-bold hover:bg-teal-700">Simpan</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const CheckoutModal = () => {
+                const [proof, setProof] = useState(null);
+                const handlePay = () => {
+                    const newOrders = cart.map(item => ({
+                        id: generateId(),
+                        itemId: item.id, itemName: item.name,
+                        vendorId: item.vendorId, vendorName: item.vendorName,
+                        buyerId: activeUser.id, buyerName: activeUser.name,
+                        price: item.price, totalPrice: item.price * item.qty,
+                        quantity: item.qty, variant: item.variant,
+                        paymentProof: proof ? URL.createObjectURL(proof) : null,
+                        status: 'pending_verification',
+                        date: new Date().toLocaleDateString()
+                    }));
+                    setOrders([...orders, ...newOrders]);
+                    setCart([]);
+                    closeModal();
+                    alert('Pesanan dibuat! Menunggu verifikasi vendor.');
+                };
+                return (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white p-6 rounded-xl max-w-md w-full">
+                            <h3 className="font-bold text-xl mb-4">Checkout</h3>
+                            <p className="mb-4 bg-gray-50 p-3 rounded">Total Tagihan: <b className="text-teal-700">{formatRupiah(getCartTotal())}</b></p>
+                            <div className="mb-4">
+                                <label className="block text-sm mb-1 font-bold">Upload Bukti Transfer</label>
+                                <div className="border-2 border-dashed p-4 text-center rounded relative hover:bg-gray-50 transition">
+                                    <input type="file" onChange={e => setProof(e.target.files[0])} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" />
+                                    {proof ? <span className="text-green-600 font-bold text-sm">File terpilih: {proof.name}</span> : <span className="text-gray-400 text-sm">Klik disini untuk upload</span>}
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={closeModal} className="flex-1 text-gray-500 py-2">Batal</button>
+                                <button onClick={handlePay} className="flex-1 bg-teal-600 text-white py-2 rounded font-bold hover:bg-teal-700">Bayar</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const CreateRequestModal = () => {
+                const [form, setForm] = useState({ title: '', budget: '', desc: '' });
+                const handleSubmit = () => {
+                    setRequests([...requests, { id: generateId(), userId: activeUser.id, userName: activeUser.name, status: 'open', date: new Date().toLocaleDateString(), ...form, budget: parseInt(form.budget) }]);
+                    closeModal();
+                    alert('Request diposting!');
+                };
+                return (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white p-6 rounded-xl max-w-md w-full">
+                            <h3 className="font-bold text-xl mb-4">Buat Request Baru</h3>
+                            <div className="space-y-3">
+                                <input className="border p-2 w-full rounded" placeholder="Judul Kebutuhan" value={form.title} onChange={e=>setForm({...form, title: e.target.value})} />
+                                <input type="number" className="border p-2 w-full rounded" placeholder="Budget Max (IDR)" value={form.budget} onChange={e=>setForm({...form, budget: e.target.value})} />
+                                <textarea className="border p-2 w-full rounded" placeholder="Detail..." value={form.desc} onChange={e=>setForm({...form, desc: e.target.value})}></textarea>
+                                <button onClick={handleSubmit} className="w-full bg-teal-600 text-white p-2 rounded font-bold hover:bg-teal-700">Posting</button>
+                                <button onClick={closeModal} className="w-full text-gray-500 p-2">Batal</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const MakeOfferModal = ({ req }) => {
+                const [form, setForm] = useState({ price: '', message: '' });
+                const handleSubmit = () => {
+                    setOffers([...offers, { id: generateId(), requestId: req.id, vendorId: activeUser.id, vendorName: activeUser.name, status: 'pending', ...form, price: parseInt(form.price) }]);
+                    closeModal();
+                    alert('Penawaran dikirim!');
+                };
+                return (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white p-6 rounded-xl max-w-md w-full">
+                            <h3 className="font-bold text-xl mb-2">Ajukan Penawaran</h3>
+                            <p className="text-sm text-gray-500 mb-4">Untuk: {req.title}</p>
+                            <input type="number" className="border p-2 w-full rounded mb-2" placeholder="Harga Penawaran" value={form.price} onChange={e=>setForm({...form, price: e.target.value})} />
+                            <textarea className="border p-2 w-full rounded mb-4" placeholder="Pesan..." value={form.message} onChange={e=>setForm({...form, message: e.target.value})}></textarea>
+                            <button onClick={handleSubmit} className="w-full bg-teal-600 text-white p-2 rounded font-bold hover:bg-teal-700">Kirim</button>
+                            <button onClick={closeModal} className="w-full text-gray-500 p-2">Batal</button>
+                        </div>
+                    </div>
+                );
+            };
+
+            // --- VIEWS ---
+
+            const OrderHistory = () => {
+                const myOrders = orders.filter(o => activeUser.role === 'vendor' ? o.vendorId === activeUser.id : o.buyerId === activeUser.id);
+                const updateStatus = (id, status) => setOrders(orders.map(o => o.id === id ? { ...o, status } : o));
+
+                return (
+                    <div className="space-y-6">
+                        <h2 className="text-2xl font-bold">Riwayat Transaksi</h2>
+                        <div className="bg-white shadow rounded-lg overflow-hidden overflow-x-auto">
+                            <table className="w-full text-left text-sm min-w-[600px]">
+                                <thead className="bg-gray-100 uppercase text-gray-600 border-b">
+                                    <tr><th className="p-4">Produk</th><th className="p-4">Detail</th><th className="p-4">Total</th><th className="p-4">Status & Aksi</th></tr>
+                                </thead>
+                                <tbody>
+                                    {myOrders.length === 0 && <tr><td colSpan="4" className="p-6 text-center text-gray-500">Belum ada transaksi</td></tr>}
+                                    {myOrders.map(o => (
+                                        <tr key={o.id} className="border-b hover:bg-gray-50">
+                                            <td className="p-4 font-bold">{o.itemName} <div className="text-xs font-normal text-gray-500">{activeUser.role==='vendor' ? o.buyerName : o.vendorName}</div></td>
+                                            <td className="p-4">Qty: {o.quantity}<br/><span className="text-xs text-gray-500">{o.variant}</span>
+                                            {o.paymentProof && <div onClick={()=>window.open(o.paymentProof)} className="text-blue-600 cursor-pointer text-xs mt-1 underline flex items-center gap-1"><Icons.FileText size={12}/> Lihat Bukti</div>}
+                                            </td>
+                                            <td className="p-4 font-bold text-teal-700">{formatRupiah(o.totalPrice)}</td>
+                                            <td className="p-4">
+                                                <span className={`px-2 py-1 rounded text-xs font-bold uppercase block w-fit mb-2
+                                                    ${o.status.toLowerCase() === 'pending_verification' ? 'bg-yellow-100 text-yellow-800' : 
+                                                      o.status.toLowerCase() === 'diproses' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+                                                    {o.status.replace('_', ' ')}
+                                                </span>
+                                                {activeUser.role === 'vendor' && o.status.toLowerCase() === 'pending_verification' && (
+                                                    <button onClick={() => updateStatus(o.id, 'diproses')} className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-700 flex items-center gap-1 shadow">
+                                                        <Icons.PlayCircle size={12}/> Proses
+                                                    </button>
+                                                )}
+                                                {activeUser.role === 'vendor' && o.status.toLowerCase() === 'diproses' && (
+                                                    <button onClick={() => updateStatus(o.id, 'selesai')} className="bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700 flex items-center gap-1 shadow">
+                                                        <Icons.CheckSquare size={12}/> Selesai
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+            };
+
+            const RequestsView = () => {
+                const isVendor = activeUser.role === 'vendor';
+                const list = isVendor ? requests.filter(r => r.status === 'open') : requests.filter(r => r.userId === activeUser.id);
+
+                const handleAccept = (offer, req) => {
+                    setModalContent(
+                        <ConfirmModal 
+                            title="Konfirmasi Pilihan"
+                            message={`Pilih ${offer.vendorName} seharga ${formatRupiah(offer.price)}?`}
+                            onCancel={closeModal}
+                            onConfirm={() => {
+                                setRequests(prev => prev.map(r => r.id === req.id ? {...r, status: 'closed'} : r));
+                                setOrders(prev => [...prev, {
+                                    id: generateId(), itemId: req.id, itemName: `[REQUEST] ${req.title}`,
+                                    vendorId: offer.vendorId, vendorName: offer.vendorName,
+                                    buyerId: activeUser.id, buyerName: activeUser.name,
+                                    price: offer.price, totalPrice: offer.price, quantity: 1, variant: '-',
+                                    status: 'diproses', date: new Date().toLocaleDateString()
+                                }]);
+                                closeModal();
+                                setView('orders'); 
+                            }}
+                        />
+                    );
+                };
+
+                return (
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold">{isVendor ? 'Market Request' : 'Request Saya'}</h2>
+                            {!isVendor && <button onClick={()=>setModalContent(<CreateRequestModal/>)} className="bg-teal-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-teal-700 transition shadow"><Icons.Plus size={16}/> Buat Request</button>}
+                        </div>
+                        <div className="grid gap-4">
+                            {list.length === 0 && <p className="text-gray-500 text-center py-8">Tidak ada data saat ini.</p>}
+                            {list.map(req => {
+                                const reqOffers = offers.filter(o => o.requestId === req.id);
+                                const myOffer = isVendor ? offers.find(o => o.requestId === req.id && o.vendorId === activeUser.id) : null;
+                                return (
+                                    <div key={req.id} className="bg-white p-5 rounded-xl shadow border border-gray-100 hover:shadow-md transition">
+                                        <div className="flex justify-between mb-2">
+                                            <h3 className="font-bold text-lg text-gray-800">{req.title}</h3>
+                                            <span className={`px-2 py-1 rounded text-xs font-bold ${req.status==='open'?'bg-green-100 text-green-700':'bg-gray-200'}`}>{req.status.toUpperCase()}</span>
+                                        </div>
+                                        <p className="text-gray-600 text-sm mb-3">{req.desc}</p>
+                                        <div className="text-xs text-gray-500 mb-4 flex items-center gap-4">
+                                            <span className="bg-orange-50 text-orange-700 px-2 py-1 rounded font-semibold">Budget: {formatRupiah(req.budget)}</span>
+                                            <span>Oleh: {req.userName}</span>
+                                        </div>
+                                        
+                                        {isVendor && (
+                                            myOffer ? <div className="bg-blue-50 text-blue-700 p-2 rounded text-sm font-bold border border-blue-100 text-center">Anda menawar: {formatRupiah(myOffer.price)}</div> 
+                                            : <button onClick={()=>setModalContent(<MakeOfferModal req={req}/>)} className="bg-teal-600 text-white px-4 py-2 rounded text-sm w-full hover:bg-teal-700 transition">Ajukan Penawaran</button>
+                                        )}
+
+                                        {!isVendor && reqOffers.length > 0 && req.status === 'open' && (
+                                            <div className="bg-gray-50 p-3 rounded mt-3 border border-gray-100">
+                                                <div className="text-xs font-bold text-gray-500 uppercase mb-2">Penawaran Masuk:</div>
+                                                {reqOffers.map(off => (
+                                                    <div key={off.id} className="bg-white p-3 border rounded-lg flex justify-between items-center mb-2 shadow-sm">
+                                                        <div><div className="font-bold text-sm text-teal-800">{off.vendorName}</div><div className="text-xs text-gray-600">{off.message}</div></div>
+                                                        <div className="text-right">
+                                                            <div className="font-bold text-sm text-gray-800">{formatRupiah(off.price)}</div>
+                                                            <button onClick={()=>handleAccept(off, req)} className="text-xs bg-teal-600 text-white px-3 py-1 rounded mt-1 hover:bg-teal-700">Pilih</button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            };
+
+            const Marketplace = () => (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold">Katalog Produk</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {products.map(p => (
+                            <div key={p.id} className="bg-white rounded-xl shadow border border-gray-100 p-4 hover:shadow-lg transition flex flex-col">
+                                <img src={p.image} className="w-full h-40 object-cover rounded-lg mb-3" />
+                                <div className="flex-1">
+                                    <div className="flex justify-between items-start mb-1">
+                                        <h3 className="font-bold text-lg line-clamp-1">{p.name}</h3>
+                                        <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{p.category}</span>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mb-2 flex items-center gap-1"><Icons.Briefcase size={12}/> {p.vendorName}</p>
+                                    <p className="text-teal-700 font-bold text-xl">{formatRupiah(p.price)}</p>
+                                </div>
+                                <button onClick={()=>addToCart(p, 1, p.variants[0], '')} className="mt-4 w-full bg-teal-50 text-teal-700 py-2 rounded font-bold hover:bg-teal-600 hover:text-white transition flex items-center justify-center gap-2"><Icons.ShoppingCart size={16}/> Beli</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            // --- MAIN APP STRUCTURE ---
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                const u = users.find(x => x.email === email && x.password === pass);
+                if (u) { setActiveUser(u); setView('dashboard'); } else alert('Login gagal (Gunakan Demo Account)');
+            };
+
+            const handleRegister = (e) => {
+                e.preventDefault();
+                // FIX: Semua registrasi baru otomatis menjadi USER
+                const newUser = { 
+                    id: generateId(), 
+                    name: regName, 
+                    email: regEmail, 
+                    password: regPass, 
+                    role: 'user', // Default Role
+                    phone: '', // Placeholder
+                    address: '', // Placeholder
+                    joined: new Date().toLocaleDateString() 
+                };
+                setUsers([...users, newUser]);
+                setIsRegistering(false);
+                setModalContent(<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl max-w-sm w-full shadow-2xl text-center"><h3 className="font-bold text-xl mb-2 text-green-600">Berhasil!</h3><p>Akun dibuat. Silakan login sebagai User.</p><button onClick={closeModal} className="mt-4 bg-teal-600 text-white px-4 py-2 rounded font-bold">OK</button></div></div>);
+            };
+
+            if (!activeUser) return (
+                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-700 to-teal-900 p-4">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
+                        <div className="inline-block p-4 bg-teal-50 rounded-full mb-4 text-teal-700 shadow-sm"><Icons.Briefcase size={40}/></div>
+                        <h1 className="font-bold text-2xl mb-2 text-gray-800">Koperasi Pariwisata</h1>
+                        <p className="text-gray-500 mb-8 text-sm">Platform Terpadu Pelaku Wisata Indonesia</p>
+                        
+                        {!isRegistering ? (
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <input className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
+                                <input className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" type="password" placeholder="Password" value={pass} onChange={e=>setPass(e.target.value)} />
+                                <button className="w-full bg-teal-600 text-white p-3 rounded-lg font-bold hover:bg-teal-700 transition shadow-lg">Masuk</button>
+                                <div className="text-sm text-gray-500 mt-4">Belum punya akun? <span onClick={()=>setIsRegistering(true)} className="text-teal-600 font-bold cursor-pointer hover:underline">Daftar disini</span></div>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleRegister} className="space-y-4">
+                                <input className="w-full border p-3 rounded-lg" placeholder="Nama Lengkap" value={regName} onChange={e=>setRegName(e.target.value)} required />
+                                <input className="w-full border p-3 rounded-lg" placeholder="Email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} required />
+                                <input className="w-full border p-3 rounded-lg" type="password" placeholder="Password" value={regPass} onChange={e=>setRegPass(e.target.value)} required />
+                                <div className="text-xs text-gray-500 text-left bg-blue-50 p-2 rounded">Note: Anda akan mendaftar sebagai <b>User (Pembeli)</b>. Hubungi Admin untuk upgrade menjadi Vendor.</div>
+                                <button className="w-full bg-teal-600 text-white p-3 rounded-lg font-bold hover:bg-teal-700 transition shadow-lg">Daftar Sekarang</button>
+                                <div className="text-sm text-gray-500 mt-4"><span onClick={()=>setIsRegistering(false)} className="text-teal-600 font-bold cursor-pointer hover:underline">Kembali ke Login</span></div>
+                            </form>
+                        )}
+
+                        <div className="mt-6 text-xs text-gray-500 bg-gray-50 p-4 rounded-lg text-left border">
+                            <p className="font-bold mb-2">Akun Demo:</p>
+                            <p>Vendor: vendor@bali.id / 123</p>
+                            <p>User: budi@gmail.com / 123</p>
+                            <p>Admin: admin@koperasi.id / 123</p>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen flex flex-col bg-gray-50">
+                    <nav className="bg-teal-700 text-white p-4 flex justify-between items-center sticky top-0 z-40 shadow-lg">
+                        <div className="flex items-center gap-3 font-bold text-lg cursor-pointer" onClick={()=>setView('dashboard')}>
+                            <div className="bg-white/10 p-1.5 rounded"><Icons.Briefcase size={20}/></div>
+                            <span>Koperasi Pariwisata</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            {activeUser.role === 'user' && <button onClick={()=>setView('cart')} className="relative hover:bg-white/10 p-2 rounded-full transition"><Icons.ShoppingCart/><span className="absolute top-0 right-0 bg-orange-500 text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold border-2 border-teal-700">{cart.length}</span></button>}
+                            
+                            {/* NEW: PROFILE CLICKABLE AREA */}
+                            <div 
+                                className="text-right text-xs hidden md:block cursor-pointer hover:bg-white/10 p-2 rounded transition"
+                                onClick={() => setModalContent(<EditProfileModal />)}
+                                title="Klik untuk Edit Profil"
+                            >
+                                <div className="font-bold">{activeUser.name}</div>
+                                <div className="opacity-75 uppercase text-[10px] tracking-wider">{activeUser.role}</div>
+                            </div>
+                            
+                            <button onClick={()=>setActiveUser(null)} className="hover:bg-white/10 p-2 rounded-full transition" title="Logout"><Icons.LogOut/></button>
+                        </div>
+                    </nav>
+
+                    <div className="flex flex-1 overflow-hidden">
+                        <aside className="w-64 bg-white border-r hidden md:block flex-shrink-0 overflow-y-auto">
+                            <div className="p-4 space-y-2">
+                                <div className="text-xs font-bold text-gray-400 uppercase mb-2 px-3">Menu Utama</div>
+                                <button onClick={()=>setView('dashboard')} className={`w-full text-left p-3 rounded-lg flex gap-3 transition items-center ${view==='dashboard' ? 'bg-teal-50 text-teal-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}><Icons.Users size={20}/> Dashboard</button>
+                                
+                                {activeUser.role === 'vendor' && <>
+                                    <button onClick={()=>setView('my_products')} className={`w-full text-left p-3 rounded-lg flex gap-3 transition items-center ${view==='my_products' ? 'bg-teal-50 text-teal-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}><Icons.Package size={20}/> Produk Saya</button>
+                                    <button onClick={()=>setView('requests')} className={`w-full text-left p-3 rounded-lg flex gap-3 transition items-center ${view==='requests' ? 'bg-teal-50 text-teal-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}><Icons.MessageSquare size={20}/> Market Request</button>
+                                    <button onClick={()=>setView('orders')} className={`w-full text-left p-3 rounded-lg flex gap-3 transition items-center ${view==='orders' ? 'bg-teal-50 text-teal-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}><Icons.CheckCircle size={20}/> Pesanan Masuk</button>
+                                </>}
+
+                                {activeUser.role === 'user' && <>
+                                    <button onClick={()=>setView('marketplace')} className={`w-full text-left p-3 rounded-lg flex gap-3 transition items-center ${view==='marketplace' ? 'bg-teal-50 text-teal-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}><Icons.ShoppingBag size={20}/> Belanja</button>
+                                    <button onClick={()=>setView('requests')} className={`w-full text-left p-3 rounded-lg flex gap-3 transition items-center ${view==='requests' ? 'bg-teal-50 text-teal-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}><Icons.MessageSquare size={20}/> Request Saya</button>
+                                    <button onClick={()=>setView('orders')} className={`w-full text-left p-3 rounded-lg flex gap-3 transition items-center ${view==='orders' ? 'bg-teal-50 text-teal-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}><Icons.FileText size={20}/> Transaksi</button>
+                                </>}
+
+                                {activeUser.role === 'admin' && <>
+                                    <button onClick={()=>setView('users')} className={`w-full text-left p-3 rounded-lg flex gap-3 transition items-center ${view==='users' ? 'bg-teal-50 text-teal-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}><Icons.User size={20}/> Kelola User</button>
+                                    <button onClick={()=>setView('admin_products')} className={`w-full text-left p-3 rounded-lg flex gap-3 transition items-center ${view==='admin_products' ? 'bg-teal-50 text-teal-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}><Icons.Package size={20}/> Kelola Produk</button>
+                                </>}
+                            </div>
+                        </aside>
+
+                        <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
+                            {view === 'dashboard' && <div className="text-2xl font-bold mb-6 text-gray-800">Selamat Datang, {activeUser.name}</div>}
+                            {view === 'marketplace' && <Marketplace />}
+                            {view === 'orders' && <OrderHistory />}
+                            {view === 'requests' && <RequestsView />}
+                            
+                            {view === 'cart' && (
+                                <div className="max-w-2xl mx-auto">
+                                    <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Icons.ShoppingCart/> Keranjang</h2>
+                                    {cart.length === 0 ? <p className="text-gray-500 text-center py-10">Keranjang kosong.</p> : cart.map(c => (
+                                        <div key={c.cartId} className="bg-white p-4 rounded-xl border border-gray-200 mb-3 flex justify-between items-center shadow-sm">
+                                            <div className="flex items-center gap-4">
+                                                <img src={c.image} className="w-16 h-16 rounded object-cover bg-gray-100"/>
+                                                <div>
+                                                    <b className="text-lg">{c.name}</b>
+                                                    <div className="text-sm text-gray-500">{c.vendorName} • {c.variant}</div>
+                                                    <div className="text-teal-600 font-bold mt-1">{formatRupiah(c.price)} x {c.qty}</div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="font-bold text-lg mb-2">{formatRupiah(c.price * c.qty)}</div>
+                                                <button onClick={()=>setCart(cart.filter(x=>x.cartId!==c.cartId))} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition"><Icons.Trash2 size={20}/></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {cart.length > 0 && (
+                                        <div className="bg-white p-6 rounded-xl shadow-lg mt-6 border">
+                                            <div className="flex justify-between items-center mb-6">
+                                                <span className="text-gray-600">Total Pembayaran</span>
+                                                <span className="text-2xl font-bold text-teal-700">{formatRupiah(getCartTotal())}</span>
+                                            </div>
+                                            <button onClick={()=>setModalContent(<CheckoutModal/>)} className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold hover:bg-teal-700 shadow-lg transition">Checkout Sekarang</button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {view === 'my_products' && activeUser.role === 'vendor' && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold text-gray-800">Produk Saya</h2><button onClick={()=>setModalContent(<AddProductModal/>)} className="bg-teal-600 text-white px-4 py-2 rounded-lg font-bold shadow hover:bg-teal-700 flex items-center gap-2"><Icons.Plus size={18}/> Tambah Produk</button></div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">{products.filter(p=>p.vendorId===activeUser.id).map(p=>(<div key={p.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col"><img src={p.image} className="w-full h-40 object-cover rounded-lg mb-3"/><h3 className="font-bold text-lg">{p.name}</h3><p className="text-teal-600 font-bold mb-2">{formatRupiah(p.price)}</p><div className="mt-auto pt-2 border-t flex justify-between text-sm text-gray-500"><span>Stok: {p.stock}</span><span>{p.category}</span></div></div>))}</div>
+                                </div>
+                            )}
+
+                            {/* ADMIN: KELOLA USER (Update Role & VIEW DETAIL) */}
+                            {view === 'users' && activeUser.role === 'admin' && (
+                                <div>
+                                    <h2 className="text-2xl font-bold mb-6">Kelola User & Hak Akses</h2>
+                                    <div className="bg-white shadow-sm rounded-xl overflow-hidden border">
+                                        <table className="w-full text-left"><thead className="bg-gray-100 text-gray-600 border-b"><tr><th className="p-4">Nama</th><th className="p-4">Email</th><th className="p-4">Role</th><th className="p-4">Aksi</th></tr></thead>
+                                        <tbody>
+                                            {users.map(u=>(
+                                                <tr key={u.id} className="border-b hover:bg-gray-50">
+                                                    <td className="p-4 font-medium">{u.name}</td>
+                                                    <td className="p-4 text-gray-600">{u.email}</td>
+                                                    <td className="p-4">
+                                                        <select 
+                                                            value={u.role} 
+                                                            onChange={(e) => {
+                                                                const newRole = e.target.value;
+                                                                if(confirm(`Ubah role ${u.name} menjadi ${newRole}?`)) {
+                                                                    setUsers(users.map(user => user.id === u.id ? {...user, role: newRole} : user));
+                                                                }
+                                                            }}
+                                                            className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:ring-2 focus:ring-teal-500 outline-none"
+                                                        >
+                                                            <option value="user">User</option>
+                                                            <option value="vendor">Vendor</option>
+                                                            <option value="admin">Admin</option>
+                                                        </select>
+                                                    </td>
+                                                    <td className="p-4 flex gap-2">
+                                                        {/* TOMBOL DETAIL (MATA) */}
+                                                        <button onClick={()=>setModalContent(<UserDetailModal user={u}/>)} className="text-blue-500 hover:text-blue-700 bg-blue-50 p-1.5 rounded" title="Lihat Detail Profil"><Icons.Eye size={16}/></button>
+                                                        
+                                                        {u.role !== 'admin' && (
+                                                            <button onClick={() => {
+                                                                if(confirm('Yakin ingin menghapus user ini?')) setUsers(users.filter(x => x.id !== u.id));
+                                                            }} className="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded" title="Hapus User"><Icons.Trash2 size={16}/></button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody></table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ADMIN: KELOLA SEMUA PRODUK (Fitur Baru) */}
+                            {view === 'admin_products' && activeUser.role === 'admin' && (
+                                <div>
+                                    <h2 className="text-2xl font-bold mb-6">Kelola Semua Produk Vendor</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        {products.map(p => (
+                                            <div key={p.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col relative group">
+                                                {/* Tombol Hapus Produk untuk Admin */}
+                                                <button 
+                                                    onClick={() => {
+                                                        setModalContent(
+                                                            <ConfirmModal 
+                                                                title="Hapus Produk?"
+                                                                message={`Yakin ingin menghapus "${p.name}" dari vendor ${p.vendorName}? Tindakan ini tidak bisa dibatalkan.`}
+                                                                onCancel={closeModal}
+                                                                onConfirm={() => {
+                                                                    setProducts(products.filter(item => item.id !== p.id));
+                                                                    closeModal();
+                                                                }}
+                                                            />
+                                                        );
+                                                    }}
+                                                    className="absolute top-2 right-2 bg-red-100 text-red-600 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow hover:bg-red-200 z-10"
+                                                    title="Hapus Produk Ini"
+                                                >
+                                                    <Icons.Trash2 size={16}/>
+                                                </button>
+                                                
+                                                <img src={p.image} className="w-full h-40 object-cover rounded-lg mb-3"/>
+                                                <h3 className="font-bold text-lg">{p.name}</h3>
+                                                <p className="text-xs text-gray-500 mb-1">Vendor: {p.vendorName}</p>
+                                                <p className="text-teal-600 font-bold mb-2">{formatRupiah(p.price)}</p>
+                                                <div className="mt-auto pt-2 border-t flex justify-between text-sm text-gray-500">
+                                                    <span>Stok: {p.stock}</span>
+                                                    <span>{p.category}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {products.length === 0 && <p className="text-gray-500 mt-4">Belum ada produk dari vendor manapun.</p>}
+                                </div>
+                            )}
+
+                        </main>
+                    </div>
+                    {modalContent && modalContent}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
